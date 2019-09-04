@@ -25,7 +25,7 @@ public
 		features
 			lines_out : out data port;
 		flows
-			
+			fi: flow source lines_out;
 	end input_pr;
 	
 	process implementation input_pr.i
@@ -33,6 +33,8 @@ public
 			thr : thread input_th;
 		connections
 			c0 : port thr.lines_out -> lines_out;
+		flows
+			fi: flow source thr.fi -> c0 -> lines_out;
 		
 	end input_pr.i;
 	
@@ -41,7 +43,7 @@ public
 			lines_in : in data port;
 			lines_out : out data port;
 		flows
-			f_c : flow path lines_in -> lines_out;
+			fc : flow path lines_in -> lines_out;
 	end circular_pr;
 	
 	process implementation circular_pr.i
@@ -51,13 +53,15 @@ public
 			c0 : port thr.lines_out -> lines_out;
 			c1 : port lines_in -> thr.lines_in;
 		flows
-			f_c : flow path lines_in -> c1 -> thr.f_c -> c0 -> lines_out;
+			fc : flow path lines_in -> c1 -> thr.fc -> c0 -> lines_out;
 	end circular_pr.i;
 	
 	process alpha_pr
 		features
 			lines_in : in data port;
-			lines_out : out data port;	
+			lines_out : out data port;
+		flows
+			fa : flow path lines_in -> lines_out;
 	end alpha_pr;
 	
 	process implementation alpha_pr.i
@@ -66,11 +70,15 @@ public
 		connections
 			c0 : port thr.lines_out -> lines_out;
 			c1 : port lines_in -> thr.lines_in;
+		flows
+			fa : flow path lines_in -> c1 -> thr.fa -> c0 -> lines_out;
 	end alpha_pr.i;
 	
 	process output_pr
 		features
 			lines_in : in data port;
+		flows
+			fo : flow sink lines_in;
 	end output_pr;
 	
 	process implementation output_pr.i
@@ -78,11 +86,15 @@ public
 			thr : thread output_th;
 		connections
 			c0 : port lines_in -> thr.lines_in;
+		flows
+			fo : flow sink lines_in -> c0 -> thr.fo;
 	end output_pr.i;
 	
 	thread input_th
 		features
 			lines_out : out data port;
+		flows
+			fi : flow source lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
 	end input_th;
@@ -91,6 +103,8 @@ public
 		features
 			lines_in : in data port;
 			lines_out : out data port;
+		flows
+			fc : flow path lines_in -> lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
 	end circular_th;
@@ -99,6 +113,8 @@ public
 		features
 			lines_in : in data port;
 			lines_out : out data port;
+		flows
+			fa : flow path lines_in -> lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
 	end alpha_th;
@@ -106,8 +122,11 @@ public
 	thread output_th
 		features
 			lines_in : in data port;
+		flows
+			fo : flow sink lines_in;
 		properties
 			Dispatch_Protocol => Sporadic;
+
 	end output_th;
 	
 	processor genuineintel
