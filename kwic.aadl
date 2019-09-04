@@ -1,0 +1,118 @@
+package kwic
+public
+	system kwic_sys
+	end kwic_sys;
+	
+	system implementation kwic_sys.i
+		subcomponents
+			cpu0 : processor genuineintel;
+			input : process input_pr.i;
+			circular : process circular_pr.i;
+			alpha : process alpha_pr.i;
+			output : process output_pr.i;
+		connections
+			input_circular : port input.lines_out -> circular.lines_in;
+			circular_alpha : port circular.lines_out -> alpha.lines_in;
+			alpha_output : port alpha.lines_out -> output.lines_in;
+		properties
+			Actual_Processor_Binding => (reference (cpu0))
+			applies to
+			input,circular,alpha,output;
+	end kwic_sys.i;
+	
+	-- Mimic user input to the system
+	process input_pr
+		features
+			lines_out : out data port;
+		flows
+			
+	end input_pr;
+	
+	process implementation input_pr.i
+		subcomponents
+			thr : thread input_th;
+		connections
+			c0 : port thr.lines_out -> lines_out;
+		
+	end input_pr.i;
+	
+	process circular_pr
+		features
+			lines_in : in data port;
+			lines_out : out data port;
+		flows
+			f_c : flow path lines_in -> lines_out;
+	end circular_pr;
+	
+	process implementation circular_pr.i
+		subcomponents
+			thr : thread circular_th;
+		connections
+			c0 : port thr.lines_out -> lines_out;
+			c1 : port lines_in -> thr.lines_in;
+		flows
+			f_c : flow path lines_in -> c1 -> thr.f_c -> c0 -> lines_out;
+	end circular_pr.i;
+	
+	process alpha_pr
+		features
+			lines_in : in data port;
+			lines_out : out data port;	
+	end alpha_pr;
+	
+	process implementation alpha_pr.i
+		subcomponents
+			thr : thread alpha_th;
+		connections
+			c0 : port thr.lines_out -> lines_out;
+			c1 : port lines_in -> thr.lines_in;
+	end alpha_pr.i;
+	
+	process output_pr
+		features
+			lines_in : in data port;
+	end output_pr;
+	
+	process implementation output_pr.i
+		subcomponents
+			thr : thread output_th;
+		connections
+			c0 : port lines_in -> thr.lines_in;
+	end output_pr.i;
+	
+	thread input_th
+		features
+			lines_out : out data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+	end input_th;
+	
+	thread circular_th
+		features
+			lines_in : in data port;
+			lines_out : out data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+	end circular_th;
+	
+	thread alpha_th
+		features
+			lines_in : in data port;
+			lines_out : out data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+	end alpha_th;
+	
+	thread output_th
+		features
+			lines_in : in data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+	end output_th;
+	
+	processor genuineintel
+	end genuineintel;
+	
+	
+	
+end kwic;
