@@ -14,6 +14,9 @@ public
 			input_circular : port input.lines_out -> circular.lines_in;
 			circular_alpha : port circular.lines_out -> alpha.lines_in;
 			alpha_output : port alpha.lines_out -> output.lines_in;
+		flows
+			etef : end to end flow input.fi -> input_circular -> circular.fc -> 
+			circular_alpha -> alpha.fa -> alpha_output -> output.fo;
 		properties
 			Actual_Processor_Binding => (reference (cpu0))
 			applies to
