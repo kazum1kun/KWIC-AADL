@@ -6,6 +6,7 @@ public
 	system implementation kwic_sys.i
 		subcomponents
 			cpu0 : processor genuineintel;
+			mem : memory mem;
 			input : process input_pr.i;
 			circular : process circular_pr.i;
 			alpha : process alpha_pr.i;
@@ -16,7 +17,8 @@ public
 			alpha_output : port alpha.lines_out -> output.lines_in;
 		flows
 			etef : end to end flow input.fi -> input_circular -> circular.fc -> 
-			circular_alpha -> alpha.fa -> alpha_output -> output.fo;
+			circular_alpha -> alpha.fa -> alpha_output -> output.fo
+			{latency => 10ms..15ms;};
 		properties
 			Actual_Processor_Binding => (reference (cpu0))
 			applies to
@@ -37,8 +39,7 @@ public
 		connections
 			c0 : port thr.lines_out -> lines_out;
 		flows
-			fi: flow source thr.fi -> c0 -> lines_out;
-		
+			fi: flow source thr.fi -> c0 -> lines_out;	
 	end input_pr.i;
 	
 	process circular_pr
@@ -100,6 +101,7 @@ public
 			fi : flow source lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 1ms..3ms;
 	end input_th;
 	
 	thread circular_th
@@ -110,6 +112,7 @@ public
 			fc : flow path lines_in -> lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 2ms..8ms;
 	end circular_th;
 	
 	thread alpha_th
@@ -120,6 +123,7 @@ public
 			fa : flow path lines_in -> lines_out;
 		properties
 			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 2ms..10ms;
 	end alpha_th;
 	
 	thread output_th
@@ -129,12 +133,13 @@ public
 			fo : flow sink lines_in;
 		properties
 			Dispatch_Protocol => Sporadic;
-
+			Compute_Execution_Time => 1ms..3ms;
 	end output_th;
 	
 	processor genuineintel
 	end genuineintel;
 	
-	
+	memory mem
+	end mem;
 	
 end kwic;
