@@ -11,6 +11,7 @@ public
 			circular : process circular_pr.i;
 			alpha : process alpha_pr.i;
 			output : process output_pr.i;
+			mem : memory mem;
 		connections
 			input_circular : port input.lines_out -> circular.lines_in;
 			circular_alpha : port circular.lines_out -> alpha.lines_in;
@@ -21,6 +22,9 @@ public
 			{latency => 10ms..15ms;};
 		properties
 			Actual_Processor_Binding => (reference (cpu0))
+			applies to
+			input,circular,alpha,output;
+			Actual_Memory_Binding => (reference (mem))
 			applies to
 			input,circular,alpha,output;
 	end kwic_sys.i;
@@ -141,5 +145,11 @@ public
 	
 	memory mem
 	end mem;
+<<<<<<< HEAD
+=======
+	
+	bus main
+	end main;
+>>>>>>> 5d80b4fa8f65be8e27e6e61f2380592776804aa7
 	
 end kwic;
