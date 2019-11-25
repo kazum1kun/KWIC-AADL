@@ -167,6 +167,15 @@ public
 		properties
 			Dispatch_Protocol => Aperiodic;
 	end input_notify_th;
+	
+	thread input_getlines_th
+		features
+			get_lines: in event port;
+			return_lines: out data port string_list;
+		flows
+			fe: flow sink get_lines;
+			fd: flow source return_lines;
+	end input_getlines_th;
 
 	thread circular_th
 		features
@@ -179,6 +188,15 @@ public
 			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 2ms .. 8ms;
 	end circular_th;
+	
+	thread circular_getlines_th
+		features
+			get_lines: in event port;
+			return_lines: out data port string_list;
+		flows
+			fe: flow sink get_lines;
+			fd: flow source return_lines;
+	end circular_getlines_th;
 	
 	thread circular_notify_th
 		features
@@ -233,6 +251,15 @@ public
 		properties
 			Dispatch_Protocol => Aperiodic;
 	end alpha_callback_th;
+	
+	thread alpha_getlines_th
+		features
+			get_lines: in event port;
+			return_lines: out data port string_list;
+		flows
+			fe: flow sink get_lines;
+			fd: flow source return_lines;
+	end alpha_getlines_th;
 	
 	thread output_th
 		features
