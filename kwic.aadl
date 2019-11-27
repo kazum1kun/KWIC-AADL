@@ -4,6 +4,12 @@ public
 	with Base_Types;
 
 	system kwic_sys
+		features
+			lines_out: out data port string_list;
+			request_lines: in event port;
+		flows
+			fpd: flow source lines_out;
+			fe: flow sink request_lines;
 	end kwic_sys;
 
 	system implementation kwic_sys.i
@@ -25,9 +31,12 @@ public
 			circular_alpha_notify: port circular.notify_alpha -> alpha.rcv_callback;
 			circular_alpha_get: port alpha.call_getlines -> circular.rcv_getlines;
 			
-			alpha_output: port alpha.lines_out -> output.lines_in;
+			alpha_output_data: port alpha.lines_out -> output.lines_in;
 			alpha_output_notify: port alpha.notify_output -> output.rcv_callback;
 			alpha_output_get: port output.call_getlines -> alpha.rcv_getlines;
+			
+			system_output_conn: port output.lines_out -> lines_out;
+			system_req_conn: port request_lines -> output.ext_getlines;
 		flows
 			ic_data_etef: end to end flow input.fdo -> input_circular_data -> circular.fdi;
 			ic_event_etef: end to end flow input.feo -> input_circular_notify -> circular.fpe 
@@ -37,10 +46,12 @@ public
 			ca_event_etef: end to end flow circular.feo -> circular_alpha_notify -> alpha.fpe
 											-> circular_alpha_get -> circular.fei;
 			
-			ao_lines_etef: end to end flow alpha.fdo -> alpha_output -> output.fd;
+			ao_lines_etef: end to end flow alpha.fdo -> alpha_output_data -> output.fdi;
 			ao_event_etef: end to end flow alpha.feo -> alpha_output_notify -> output.fpe
 											-> alpha_output_get -> alpha.fei;
 			
+			fpd: flow source output.fdo -> system_output_conn -> lines_out;
+			fe: flow sink request_lines -> system_req_conn -> output.fe;
 		properties
 			Actual_Processor_Binding => (reference (cpu0))
 			applies to
@@ -55,7 +66,6 @@ public
 			lines_out: out data port string_list;
 			notify_circular: out event port;
 			rcv_getlines: in event port;
-			
 		flows
 			fdo: flow source lines_out;
 			feo: flow source notify_circular;
@@ -167,12 +177,16 @@ public
 
 	process output_pr
 		features
+			lines_out: out data port string_list;
 			lines_in: in data port string_list;
 			rcv_callback: in event port;
 			call_getlines: out event port;
+			ext_getlines: in event port;
 		flows
 			fpe: flow path rcv_callback -> call_getlines;
-			fd: flow sink lines_in;
+			fdi: flow sink lines_in;
+			fdo: flow source lines_out;
+			fe: flow sink ext_getlines;
 	end output_pr;
 
 	process implementation output_pr.i
@@ -185,9 +199,13 @@ public
 			c1: port rcv_callback -> callback_thr.on_alpha_ready;
 			c2: port callback_thr.alpha_data_fwd -> process_thr.lines_in;
 			c3: port callback_thr.call_getline -> call_getlines;
+			c4: port process_thr.lines_out -> lines_out;
+			c5: port ext_getlines -> process_thr.get_lines;
 		flows
-			fd: flow sink lines_in -> c0 -> callback_thr.fpd -> c2 -> process_thr.fi;
+			fdi: flow sink lines_in -> c0 -> callback_thr.fpd -> c2 -> process_thr.fdi;
+			fdo: flow source process_thr.fdo -> c4 -> lines_out;
 			fpe: flow path rcv_callback -> c1 -> callback_thr.fpe -> c3 -> call_getlines;
+			fe: flow sink ext_getlines -> c5 -> process_thr.fe;
 	end output_pr.i;
 
 	thread input_th
@@ -316,8 +334,12 @@ public
 	thread output_th
 		features
 			lines_in: in data port string_list;
+			lines_out: out data port string_list;
+			get_lines: in event port;
 		flows
-			fi: flow sink lines_in;
+			fdi: flow source lines_out;
+			fdo: flow sink lines_in;
+			fe: flow sink get_lines;
 		properties
 			Dispatch_Protocol => Sporadic;
 	end output_th;
